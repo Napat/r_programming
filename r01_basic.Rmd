@@ -1,0 +1,385 @@
+---
+title: "R Notebook"
+output:
+    html_document: default
+---
+
+
+R markdown notabook สามารถสร้างเอกสารได้หลากหลาย format เช่น html, pdf, word โดยผู้ใช้เพียงแค่หัดเขียน markdown language ให้เป็นก็พอแล้ว
+ซึ่งเป็นจุดเด่นทำให้คนทั่วๆไปที่ไม่ใช่ software developer ไม่ต้องลำบากในการทำรายงานสรุปผลมากนัก  
+  
+Shortcut เบื้องต้น  
+```
+Ctrl+Shift+Enter: Run Current Chunk
+Ctrl+Alt+I: สร้าง Chunk ใหม่สำหรับเขียน R code
+Ctrl+Shift+K: Preview สร้าง output ของเอกสารเช่น HTML (ตั้งค่า output ที่บริเวณบรรทัดแรกๆของไฟล์)
+```
+
+การเพิ่ม packages ใหม่ให้ RStudio ทำได้โดย  
+`Tools > Install packages > add packages name to packages box`  
+ตัวอย่าง packages ที่ใช้งานบ่อยๆเช่น  
+`MASS gplots ggplot2 gtable data.table dataframes2xls httr XML xml2 curl rvest plyr rjson dplyr ggally ggpairs reshape2 rjson`  
+  
+หรืออาจใช้ R console ช่วยในการติดตั้งด้วยคำสั่งดังนี้  
+```
+install.packages(c("MASS", "gplots", "ggplot2", "gtable","data.table", "dataframes2xls", "httr", "XML", "xml2", "curl", "rvest", "plyr", "rjson", "dplyr", "ggally", "ggpairs", "reshape2", "rjson"),
+repos = "http://cran.r-project.org")
+```
+  
+### Test plot 
+Note: ตัวแปร cars ถูกใส่ค่ามาให้อัตโนมัติจาก `packages:datasets   `   สามารถเรียกดู built-in dataset ได้ด้วยคำสั่ง `data()`  
+    
+```{r}
+plot(cars)
+data(cars)  # load cars to Environment
+```
+
+
+### Test scrap data from online table  
+  
+```{r}
+library(data.table)
+library(XML)
+
+airline = "http://www.theacsi.org/benchmarks-by-industry-14729"  
+airline.table = readHTMLTable(airline, header=T, which=1, stringsAsFactors=F)
+View(airline.table)
+```
+
+ภาษา R เป็น Case sensitive นะ  
+  
+### ประเภทข้อมูลใน R ที่ใช้บ่อยๆ(มีมากกว่านี้นะ)
+- Numeric: ข้อมูลตัวเลข
+- Complex: ข้อมูลตัวเลขเชิงซ้อน  
+- Character: ตัวหนังสือ text ทั่วไป  
+- Logical: TRUE/FALSE
+- Date: ข้อมูลวันที่  
+- Factor(categorical): ตัวแปรข้อมูลเชิงคุณภาพ  
+
+```{r}
+class(1)
+class(1+1i)
+class("pizza")
+class(1==0)
+class(as.Date("2017-09-22"))
+class(factor("hotdog", "Tom Yum Goong"))
+```
+
+**vector**: เป้นข้อมูลมิติเดียว มีได้ตั้งแต่ 1 ตัวขึ้นไปแต่จะต้องเป็น atomic object ประเภทเดียวกันทั้งหมด
+สามารถใช้ตัวอักษร c(concatenate) เพื่อระบุว่าเป็น vector ได้ตัวอย่างเช่น  
+```{r}
+myvector1 <- c(1,2,3) # same as: myvector = c(1,2,3)
+myvector1
+class(myvector1)
+```
+  
+จาก output `[1] 1 2 3` ค่า [1] หมายถึงเป็นตัวแปรแบบ 1 มิติ  
+  
+**list**  
+คล้าย vector แต่สามารถนำข้อมูลต่างชนิดมาใส่ในลิสเดียวกันได้  
+```{r}
+mylist <- list('Dog', 30, 1.23)
+class(mylist)
+mylist
+```
+
+**Array**   
+```{r}
+result <- array(c(c(5,9,3), c(10,11,12,13,14,15)), dim = c(3,3,2))
+class(result)
+print(result)
+```
+  
+**matrix**: เป็นข้อมูลหลายมิติที่ข้อมูลทุกตัวจะต้องเป็น object ชนิดเดียวกันทั้งหมด    
+```{r}
+survey.messy <- read.table("res/survey_messy.csv", header=TRUE, sep=",")
+matrix.m <- matrix(c('a','a','b','b','c','a'), nrow=2, ncol=3, byrow=TRUE)
+class(matrix.m)
+nrow(survey.messy)
+ncol(survey.messy)
+str(survey.messy)
+print(matrix.m)
+```
+
+```{r}
+plot(survey.messy)
+```
+
+```{r}
+plot((survey.messy)[["Program"]])
+```
+
+**data frame**: เป็นข้อมูลหลายมิติที่สามารถกำหนดให้ข้อมูลต่าง column กันเป็น type ที่ไม่เหมือนกันได้  
+สามารถเข้าถึงข้อมูลใน data frame ทั้ง column ที่ต้องการได้ดังนี้ `mytable$Name` หรือ `mytable[['Name']]`
+
+สามารถใช้ Subset(เครื่องหมาย $) ในการดึงข้อมูลออกมาจาก object เช่น vector หรือ dataframe ได้เช่น `mytable$items[2]` เป็นต้น สามารถสร้าง data frame ได้ด้วย `data.frame()`
+
+```{r}
+names <- c("June", "Oon", "Eve")
+age <- c(25, 22, 18)
+student <- c(FALSE, TRUE, TRUE)
+girls <- data.frame(names, age, student)
+girls
+girls[2,2]    # Subset data frame
+girls$age
+girls$age[2]  # Subset list of age
+```
+
+#### Subset by position  
+```{r}
+girls[1:2, 2:3]     # subset rows 1,2 / columns 2,3
+girls[2:3,]         # subset rows 2,3 / columns all
+girls[, "student"]  # subset all rows by column name
+girls[, c("names","student")]  # subset all rows by column names
+```
+
+
+การแสดงผลข้อมูลชนิด data frame เบื้องต้น  
+```{r}
+library(ggplot2)
+data(diamonds)    # Load build-in ggplot2 data named diamons to env
+head(diamonds)    # Print first 6 rows of diamonds data frame
+head(diamonds, 5)  # Print first 5 rows of diamonds data frame
+tail(diamonds, 4) # Print last 4 rows of diamonds data frame
+dim(diamonds)     # Print dimension of data frame
+
+```
+
+#### ดึงข้อมูลมาบางส่วนไปยัง data frame ที่สร้างขึ้นใหม่   
+ในหลายๆครั้งเราต้องการดึงข้อมูลมาประมวลผลแค่บางส่วนเพื่อทดสอบ โดยไม่ต้องการใช้ข้อมูลทั้งหมดซึ่งอาจจะกินทรัพยากรเยอะ ทำงานได้ช้า สามารถทำได้ดังนี้  
+  
+```{r}
+diamons1000 <- sample_n(diamonds, 1000)  # select random rows from table
+dim(diamons1000)
+ggplot(diamons1000, aes(carat, price)) + geom_point()
+ggplot(diamons1000, aes(carat, price, color=cut)) + geom_point()
+ggplot(diamons1000, aes(carat, price, color=cut)) + geom_point(size = 3, alpha = 0.3)
+```
+
+
+
+### basic read/write file
+  
+หากไฟล์ถูกเก็บอยู่ในรูปแบบ tab delimites สามารถอ่านข้อมูลเข้ามาได้ทันที
+```{r}
+getwd()
+input_dat <- read.table("res/users_tabdelimited.txt")
+View(input_dat)
+```
+
+หากไฟล์ถูกแยกข้อมูลโดยใช้สัญลักษณ์อื่นเช่น "," เช่นไฟล์ csv สามารถใช้ sep ได้ดังนี้  
+
+```{r}
+input_dat <- read.table("res/input.csv", header=TRUE, sep=",")
+View(input_dat)
+```
+
+#### การอ่านเขียนไฟล์ csv file นั้นมีฟังก์ชันโดยเฉพาะให้ใช้งานอยู่แล้ว  
+
+```{r}
+input_dat <- read.csv("res/input.csv")
+print(input_dat)
+```
+
+```{r}
+write.csv(input_dat, "res/tmp_input.csv")
+dir("res/")
+```
+
+
+#### json file
+```{r}
+library(rjson)
+jsondata <- fromJSON(file = "res/input.json")
+View(jsondata)
+```
+
+#### การอ่านข้อมูล string เข้ามาทีละย่อหน้า  
+```{r}
+text <- readLines("res/bookshelf_poem.txt", encoding="UTF-8")
+text[2]
+```
+  
+การวนลูปเพื่ออ่านไฟล์ทั้งหมด  
+
+```{r}
+list.filenames <- list.files(path = "res", pattern = ".csv$")
+list.data <- list()
+for(idx in 1:length(list.filenames)){
+  list.data[[idx]] <- read.csv(paste("res", list.filenames[idx], sep="/"))
+}
+View(list.data[1])
+View(list.data[2])
+```
+  
+สามารถใช้ `lapply()` แทนการเขียน loop list ตรงๆได้ดังนี้  
+```{r}
+list.filenames <- list.files(path = "res", pattern = ".csv$")
+list.data <- list()
+list.data2 <- lapply(list.filenames, function(fname){
+  read.csv(paste("res", fname, sep="/"))
+})
+View(list.data2[1])
+View(list.data2[2])
+```
+  
+### Logical Operators  
+<   Less then  
+<=  Less than or equal to  
+>   Greater than  
+>=  Greater than or equal to  
+==  Exactly equal to  
+!=  Not equal to  
+
+```{r}
+1 > 2
+3 == 3
+"string" == "string"
+"CASE" == "case"
+numlist <- c(1:10)
+numlist > 5
+pi != pi
+```
+
+### Function 
+```{r}
+addfunc <- function(a,b)
+  a+b
+
+cal_grade <- function(x)
+  if(x >= 90){
+    grade <- "A"
+  }else if(x >= 80){
+    grade <- "B"
+  }else if(x >= 70){
+    grade <- "C"
+  }else{
+    grade <- "F"
+  }
+
+addfunc(1,2)
+print(cal_grade(90))
+
+```
+
+
+
+### Play with table data
+```{r}
+as.character(survey.messy$TVhours)[1:30]
+```
+```{r}
+as.numeric(survey.messy$TVhours)[1:30]
+```
+
+```{r}
+tv.hours.string <- as.character(survey.messy$TVhours)
+tv.hours.string
+```
+
+### Pattern Matching, replacement and data cleansing
+```{r}
+# matching and replace empty string if not a number(int & float) 
+gsub("[^0-9.]", "", tv.hours.string)
+```
+
+```{r}
+# clean data with NA
+tv.h.clean_na <- as.numeric(gsub("[^0-9.]", "", tv.hours.string))
+tv.h.clean_na
+```
+
+```{r}
+# clean data with mean average
+tv.h.mean <- mean(tv.h.clean_na, na.rm=TRUE)
+tv.h.clean_mean <- tv.h.clean_na                      # Copy mean
+tv.h.clean_mean[is.na(tv.h.clean_mean)] <- tv.h.mean  # replace if NA
+tv.h.clean_mean
+```
+
+#####################################################
+### Edit ugly data table and cleansing
+
+```{r}
+library(MASS)
+library(plyr)
+View(birthwt)
+```
+
+```{r}
+# Edit collumn name
+colnames(birthwt) <- c("birthwt.below.2500", "mother.age", "mother.weight", 
+    "race", "mother.smokes", "previous.prem.labor", "hypertension", "uterine.irr", 
+    "physician.visits", "birthwt.grams")
+View(birthwt)
+```
+
+### Cleansing data using transform
+```{r}
+library(MASS)
+library(plyr)
+library(ggplot2)
+library(knitr)
+birthwt <- transform(birthwt, 
+            race <- as.factor(mapvalues(race, c(1, 2, 3), c("white","black", "other"))),
+            mother.smokes <- as.factor(mapvalues(mother.smokes, c(0,1), c("no", "yes"))),
+            hypertension <- as.factor(mapvalues(hypertension, c(0,1), c("no", "yes"))),
+            uterine.irr <- as.factor(mapvalues(uterine.irr, c(0,1), c("no", "yes")))
+            )
+```
+
+
+```{r}
+phys.visit.binned <- birthwt$physician.visits
+phys.visit.binned[phys.visit.binned >= 3] <- "3.or.more"
+birthwt <- transform(birthwt, phys.visit.binned = as.factor(phys.visit.binned))
+
+birthwt$phys.visit.binned
+```
+
+### Web scraping: like css selector
+
+```{r}
+library(xml2)
+library(rvest)
+webtest <- read_html("http://www.imdb.com/title/tt0133093/")
+
+webtest %>%
+  html_node("strong span") %>%
+  html_text() %>%
+  as.numeric()
+
+```
+
+```{r}
+webtest %>%
+  html_node("#titleCast .itemprop span") %>%
+  html_text()
+  
+```
+
+```{r}
+webtest %>%
+  html_nodes("#titleCast .itemprop span") %>%
+  html_text()
+```
+
+
+```{r}
+library(data.table)
+mydata <- fread("http://www.stats.ox.ac.uk/pub/datasets/csb/ch11b.dat")
+```
+
+```{r}
+library(XML)
+library(rvest)
+result.airline <- "http://www.theacsi.org/benchmarks-by-industry-14729"
+
+airline.table <- readHTMLTable(result.airline, header=T, which=1, stringsASFactors=F)
+View(airline.table)
+
+```
+
+
+
+
