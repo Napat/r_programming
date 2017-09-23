@@ -48,7 +48,7 @@ View(airline.table)
 
 ภาษา R เป็น Case sensitive นะ  
   
-### ประเภทข้อมูลใน R ที่ใช้บ่อยๆ(มีมากกว่านี้นะ)
+### ประเภทข้อมูลใน R ที่ใช้บ่อยๆ(มีมากกว่านี้อีกเยอะนะ)  
 - Numeric: ข้อมูลตัวเลข
 - Complex: ข้อมูลตัวเลขเชิงซ้อน  
 - Character: ตัวหนังสือ text ทั่วไป  
@@ -62,7 +62,9 @@ class(1+1i)
 class("pizza")
 class(1==0)
 class(as.Date("2017-09-22"))
-class(factor("hotdog", "Tom Yum Goong"))
+colors <- factor(c("white", "black", "red", "blue","black", "blue"))
+class(colors)
+View(colors)
 ```
 
 **vector**: เป้นข้อมูลมิติเดียว มีได้ตั้งแต่ 1 ตัวขึ้นไปแต่จะต้องเป็น atomic object ประเภทเดียวกันทั้งหมด
@@ -83,7 +85,7 @@ class(mylist)
 mylist
 ```
 
-**Array**   
+**array**   
 ```{r}
 result <- array(c(c(5,9,3), c(10,11,12,13,14,15)), dim = c(3,3,2))
 class(result)
@@ -237,7 +239,7 @@ View(list.data2[2])
 "string" == "string"
 "CASE" == "case"
 numlist <- c(1:10)
-numlist > 5
+numlist <= 5
 pi != pi
 ```
 
@@ -261,8 +263,6 @@ addfunc(1,2)
 print(cal_grade(90))
 
 ```
-
-
 
 ### Play with table data
 ```{r}
